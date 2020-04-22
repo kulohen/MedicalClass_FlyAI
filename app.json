@@ -1,50 +1,50 @@
 {
-  "name":"医疗文本分类",
-  "author":"莫须有の嚣张",
-  "description":"医疗文本分类",
-  "topic":"文本分类,分类算法",
+  "name":"医疗文本分类", 
+  "author":"莫须有の嚣张", 
+  "description":"医疗文本分类", 
+  "topic":"文本分类,分类算法", 
   "data":{
     "source":[
       {
-        "id":"MedicalClass",
-        "name":"医疗文本分类",
+        "id":"MedicalClass", 
+        "name":"医疗文本分类", 
         "source":"数据集来源网络"
       }
     ]
-  },
+  }, 
   "model":{
     "input":{
       "columns":[
         {
-          "name":"title",
-          "type":"string",
+          "name":"title", 
+          "type":"string", 
           "sample":"文本"
-        },
+        }, 
         {
-          "name":"text",
-          "type":"string",
+          "name":"text", 
+          "type":"string", 
           "sample":"文本"
         }
       ]
-    },
+    }, 
     "output":{
       "columns":[
         {
-          "name":"label",
-          "type":"string",
+          "name":"label", 
+          "type":"string", 
           "sample":"文本"
         }
       ]
     }
-  },
+  }, 
   "project":{
-    "id":"MedicalClass",
-    "language":"Python3",
-    "algorithm":"LSTM",
-    "framework":"Keras",
+    "id":"MedicalClass", 
+    "language":"Python3", 
+    "algorithm":"LSTM", 
+    "framework":"Keras", 
     "train":{
       "file":"main.py"
-    },
+    }, 
     "prediction":{
       "file":"prediction.py"
     }

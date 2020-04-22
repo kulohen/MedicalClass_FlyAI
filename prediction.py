@@ -25,3 +25,11 @@ class Prediction(FlyAI):
         text_line = pred_process(title, text, self.text2id, max_len=68)
         pred = self.id2label[np.argmax(self.model.predict(np.array(text_line)))]
         return {'label': pred}
+
+if __name__ == '__main__':
+    p = Prediction()
+    p.load_model()
+    title = "心率为72bpm是正常的吗"
+    text  = "最近不知道怎么回事总是感觉心脏不舒服..."
+    result = p.predict(title,text)
+    print(result)
