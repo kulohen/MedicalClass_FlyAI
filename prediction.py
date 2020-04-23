@@ -24,6 +24,7 @@ class Prediction(FlyAI):
         '''
         text_line = pred_process(title, text, self.text2id, max_len=68)
         pred = self.id2label[np.argmax(self.model.predict(np.array(text_line)))]
+        # print(title,text,pred)
         return {'label': pred}
 
 if __name__ == '__main__':

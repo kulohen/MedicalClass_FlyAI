@@ -52,8 +52,10 @@ class Main(FlyAI):
         '''
         # 加载数据
         self.data = pd.read_csv(os.path.join(DATA_PATH, 'MedicalClass/train.csv'))
+        file_unique = self.data['label'].unique()
+        print('train data label 分类：', len(file_unique))
         # 划分训练集、测试集
-        self.train_data, self.valid_data = train_test_split(self.data, test_size=0.01, random_state=6, shuffle=True)
+        self.train_data, self.valid_data = train_test_split(self.data, test_size=0.1, random_state=6, shuffle=True)
         self.text2id, _ = load_dict(os.path.join(DATA_PATH, 'MedicalClass/words_fr.dict'))
         self.label2id, _ = load_labeldict(os.path.join(DATA_PATH, 'MedicalClass/label.dict'))
         self.train_text, self.train_label = read_data(self.train_data, self.text2id, self.label2id)
@@ -61,6 +63,9 @@ class Main(FlyAI):
         print('=*=数据处理完成=*=')
 
     def train(self):
+        '''
+        0. 初始化参数
+        '''
         rnn_unit_1 = 128    # RNN层包含cell个数
         embed_dim = 64      # 嵌入层大小
         class_num = len(self.label2id)
@@ -68,6 +73,9 @@ class Main(FlyAI):
         batch_size = args.BATCH
         MAX_SQUES_LEN = 68  # 最大句长
 
+        '''
+        0.1 / 构建cnn
+        '''
         text_input = Input(shape=(MAX_SQUES_LEN,), dtype='int32')
         embedden_seq = Embedding(input_dim=num_word, output_dim=embed_dim, input_length=MAX_SQUES_LEN)(text_input)
         BN1 = BatchNormalization()(embedden_seq)
