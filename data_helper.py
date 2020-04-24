@@ -81,7 +81,7 @@ def batch_padding(text_batch, padding, max_len=68):
             batch_text.append(np.array(text + [padding] * (max_len-len(text))))
     return batch_text
 
-
+'''
 def get_batches(texts, labels, batch_size, text_padding):
     for batch_i in range(0, len(labels) // batch_size):
         start_i = batch_i * batch_size
@@ -90,13 +90,20 @@ def get_batches(texts, labels, batch_size, text_padding):
 
         pad_texts_batch = batch_padding(texts_batch, text_padding)
         yield pad_texts_batch, labels_batch
+'''
+def get_batches(texts, labels, text_padding):
 
+    pad_texts_batch = batch_padding(texts, text_padding)
+    return pad_texts_batch, labels
 
+'''
 def get_val_batch(texts, labels, batch_size, text_padding):
     texts_batch = texts[:batch_size]
     labels_batch = labels[:batch_size]
     pad_texts_batch = batch_padding(texts_batch, text_padding)
     return pad_texts_batch, labels_batch
+'''
+
 
 
 if __name__ == "__main__":
