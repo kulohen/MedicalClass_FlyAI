@@ -15,7 +15,9 @@ from flyai.data_helper import DataHelper
 from path import MODEL_PATH, DATA_PATH
 import pandas as pd
 import numpy as np
+from sklearn.metrics import f1_score
 
+from flyai.utils.log_helper import train_log
 from WangyiUtilOnFlyai import *
 import hyperparameter as hp
 from net import Net
@@ -99,7 +101,7 @@ class Main(FlyAI):
         hp.num_classes = len(get_nubclass_from_csv())
         d_batchSize = dynamicBatchSize(hp.num_classes)
         dataset_wangyi = DatasetByWangyi(get_nubclass_from_csv())
-        dataset_wangyi.set_Batch_Size(train_size=d_batchSize.getSizebyAcc(0), val_size=hp.val_batch_size)
+        dataset_wangyi.set_Batch_Size(train_size=d_batchSize.getSizebyAcc(0), val_size=d_batchSize.getSizebyAcc(0))
         draw_plt = drawMatplotlib()
         draw_plt.set_path(path=os.path.join(sys.path[0], 'data', 'output', time_now_plt))
         best_score = bestScore()
@@ -143,19 +145,40 @@ class Main(FlyAI):
 
         for epoch in range(args.EPOCHS):
             time_1 = time.time()
-            train_batch = dataset_wangyi.get_Next_Batch() # , val_batch
-            print('epoch',epoch)
+            draw_plt.epoch_train_x.append(epoch + 1)
+
+
+            train_batch,val_batch = dataset_wangyi.get_Next_Batch() # , val_batch
+
+            # 打印步骤和训练集/测试集的量
+            cur_step = str(epoch + 1) + "/" + str(args.EPOCHS)
+            print('------------------')
+            print('■' + cur_step, ':train %d,val %d ' % (len(x_train), len(x_val)))
             '''
             2.1 train
             '''
             time_train = time.time()
             train_text, train_label = read_data(train_batch, self.text2id, self.label2id)
             x_train,y_train = get_batches(train_text, train_label, text_padding=self.text2id['_pad_'])
-            history = k_model.fit(np.array(x_train), np.array(y_train), batch_size=batch_size, verbose=0)
+
+            val_text, val_label = read_data(val_batch, self.text2id, self.label2id)
+            x_val, y_val = get_batches(val_text, val_label, text_padding=self.text2id['_pad_'])
+            history = k_model.fit(np.array(x_train), np.array(y_train),
+                                  validation_data=(np.array(x_val), np.array(y_val)),
+                                  batch_size=batch_size, verbose=2)
             train_acc = history.history['acc'][0]
             train_loss = history.history['loss'][0]
-            print('train acc : %.4f, loss : %.4f, take time:%.1f' % (train_acc, train_loss, time.time() - time_train))
-
+            val_acc = history.history['val_acc'][0]
+            val_loss = history.history['val_loss'][0]
+            # print('train acc : %.4f, loss : %.4f, take time:%.1f' % (train_acc, train_loss, time.time() - time_train))
+            draw_plt.step_train_x.append(epoch + (i / len(train_data_loader)))
+            draw_plt.train_loss_list_y.append(loss.item())
+            draw_plt.learn_rate_list_y.append(optimizer.state_dict()['param_groups'][0]['lr'])
+            draw_plt.train_acc_list.append(train_acc)
+            draw_plt.train_loss_list.extend([train_loss] * len(train_data_loader))
+            draw_plt.val_acc_list.append(val_acc)
+            draw_plt.val_loss_list.extend([val_loss] * len(valid_data_loader))
+            draw_plt.f1_score.append(f1_weighted)
             '''
             2.2 validate
             '''
@@ -174,6 +197,49 @@ class Main(FlyAI):
             #     print('best acc:', best_score)
             #     print('val acc : %.4f, loss : %.4f, take time:%.1f' % (
             #     val_acc, val_loss, time.time() - time_val))
+
+            '''
+            3/ 保存最佳模型model
+            '''
+
+            # save best acc
+            if best_score.judge_and_save(val_acc, val_loss, epoch, f1_score=f1_weighted):
+                k_model.save(os.path.join(MODEL_PATH, 'model.h5'))
+                print('save best model')
+            best_score.print_best_now()
+            '''
+            4/ 调整学习率和优化模型
+            '''
+
+            '''
+           4.1/ 调整train batch
+           '''
+            # train acc > 99% (loss < 0.04) ，启动two-phrase training，冻结特征层然后只训练全连接层
+
+            dataset_wangyi.set_Batch_Size(train_size=d_batchSize.getSizebyAcc(val_acc, wrong_acc),
+                                          val_size=hp.val_batch_size)
+
+            '''
+            5、控制台输出，和matplotlib输出
+            '''
+            # 调用系统打印日志函数，这样在线上可看到训练和校验准确率和损失的实时变化曲线
+            train_log(train_loss=round(train_loss, 4),
+                      train_acc=round((train_acc - 0.99 if train_acc > 0.99 else 0), 4),
+                      val_loss=round(val_loss, 4),
+                      val_acc=round((val_acc - 0.99 if val_acc > 0.99 else 0), 4)
+                      )
+            sys.stdout.flush()
+            # 输出plot
+            if platform.system() == 'Windows':
+                draw_plt.showPlt(best_score_class=best_score)
+            # draw_plt.showPlt(best_score_by_acc=best_score_by_acc, best_score_by_loss=best_score_by_loss, best_epoch=best_epoch+1)
+
+        if os.path.exists(model_path):
+            best_score.print_best_final()
+        else:
+            print('未达到save best acc的条件，已保存最后一次运行的model')
+            torch.save(model_cnn.state_dict(), os.path.join(MODEL_PATH, TORCH_MODEL_NAME))
+
 
             cost_time = time.time() - time_1
             need_time_to_end = datetime.timedelta(

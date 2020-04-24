@@ -296,8 +296,8 @@ class DatasetByWangyi():
     def get_Next_Batch(self):
         # 平衡输出45类数据
         train = self.get_Next_Train_Batch_fromMemory()
-        # val = self.get_Next_Val_Batch_fromMemory()
-        return train # ,val
+        val = self.get_Next_Val_Batch_fromMemory()
+        return train ,val
 
     def get_Next_Train_Batch_fromMemory(self):
         # 平衡输出45类数据
@@ -315,8 +315,10 @@ class DatasetByWangyi():
                 # 修改游标
                 self.train_step_list[iters] += 1
                 self.train_step_list[iters] = self.train_step_list[iters] % self.train_total_list[iters]
-
-        return value_list
+        value_list = np.array(value_list)
+        df = pd.DataFrame(value_list)
+        df.columns = ['label', 'title', 'text']
+        return df
 
     def get_Next_Val_Batch_fromMemory(self):
         value_list = []
@@ -325,13 +327,15 @@ class DatasetByWangyi():
                 # 读取数据
                 if len(self.val_pd_list[iters]['label'])==0:
                     continue
-                value = self.val_pd_list[iters]['label'].values[self.val_step_list[iters]]
+                value = self.val_pd_list[iters].values[self.val_step_list[iters]]
                 value_list.append(value)
                 # 修改游标
                 self.val_step_list[iters] += 1
                 self.val_step_list[iters] = self.val_step_list[iters] % self.val_total_list[iters]
-
-        return value_list
+        value_list = np.array(value_list)
+        df = pd.DataFrame(value_list)
+        df.columns = ['label', 'title', 'text']
+        return df
 
 def label_smoothing(inputs, epsilon=0.1):
     return (1.0 - epsilon) * inputs + epsilon / num_classes
@@ -470,5 +474,5 @@ if __name__ == '__main__':
     num_classes = len(get_nubclass_from_csv())
     dataset_wangyi = DatasetByWangyi(get_nubclass_from_csv())
     dataset_wangyi.set_Batch_Size([1]*209,[1]*209)
-    train =dataset_wangyi.get_Next_Batch()
+    train ,val =dataset_wangyi.get_Next_Batch()
     print(train)
