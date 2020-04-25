@@ -1,4 +1,4 @@
-flyai==0.6.6
+flyai
 numpy
 pandas
 jieba
@@ -6,5 +6,5 @@ numpy
 tqdm
 scikit-learn
 tensorflow-gpu==1.14.0
-keras==2.2.4
+keras==2.2.5
 opencc-python-reimplemented

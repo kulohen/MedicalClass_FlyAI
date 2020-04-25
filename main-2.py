@@ -113,11 +113,33 @@ class Main(FlyAI):
             set_num_workers = 0
             print('not Windows , use num_workers = 0')
 
+
+        rnn_unit_1 = 128    # RNN层包含cell个数
+        embed_dim = 64      # 嵌入层大小
+        class_num = len(self.label2id)
+        num_word = len(self.text2id)
+        batch_size = args.BATCH
+        MAX_SQUES_LEN = 68  # 最大句长
+
         '''
         0.1 / 构建cnn
         '''
-        model_net = Net(num_classes =  get_nubclass_from_csv(),label2id=self.label2id , text2id=self.text2id)
-        k_model = model_net.get_Model()
+        text_input = Input(shape=(MAX_SQUES_LEN,), dtype='int32')
+        embedden_seq = Embedding(input_dim=num_word, output_dim=embed_dim, input_length=MAX_SQUES_LEN)(text_input)
+        BN1 = BatchNormalization()(embedden_seq)
+        bGRU1 = Bidirectional(GRU(rnn_unit_1, activation='selu', return_sequences=True,
+                                  implementation=1), merge_mode='concat')(BN1)
+        bGRU2 = Bidirectional(GRU(rnn_unit_1, activation='selu', return_sequences=True,
+                                  implementation=1), merge_mode='concat')(bGRU1)
+
+        drop = Dropout(0.5)(bGRU2)
+        avgP = GlobalAveragePooling1D()(drop)
+        maxP = GlobalMaxPooling1D()(drop)
+
+        conc = concatenate([avgP, maxP])
+
+        pred = Dense(class_num, activation='softmax')(conc)
+        k_model = keras.Model(text_input, pred)
         k_model.summary()
         k_model.compile(optimizer=RMSprop(lr=0.0005), loss='categorical_crossentropy', metrics=['acc'])
 
@@ -144,7 +166,7 @@ class Main(FlyAI):
             x_val, y_val = get_batches(val_text, val_label, text_padding=self.text2id['_pad_'])
             history = k_model.fit(np.array(x_train), np.array(y_train),
                                   validation_data=(np.array(x_val), np.array(y_val)),
-                                  batch_size=args.BATCH, verbose=2)
+                                  batch_size=batch_size, verbose=2)
             train_acc = history.history['acc'][0]
             train_loss = history.history['loss'][0]
             val_acc = history.history['val_acc'][0]

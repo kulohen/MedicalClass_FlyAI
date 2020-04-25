@@ -158,12 +158,12 @@ class dynamicBatchSize():
     def getSizebyAcc(self, acc, wrong_acc=None):
 
         assert 0 <= acc <= 1
-        if acc < 0.90:
+        if acc < 0.30:
             self.now_batch = [32] * self.n
             # self.now_batch = [128] * self.n
-        elif acc < 0.99:
-            self.now_batch = [32] * self.n
-        elif acc < 0.995:
+        elif acc < 0.60:
+            self.now_batch = [16] * self.n
+        elif acc < 0.80:
             # self.now_batch = super_batch
             self.now_batch = [8] * self.n
 
@@ -344,17 +344,17 @@ def label_smoothing(inputs, epsilon=0.1):
 class drawMatplotlib():
     def __init__(self):
         self.path = None
-        self.train_acc_list = []  # 收集用来matplotlib
-        self.val_acc_list = []  # 收集用来matplotlib
-        self.f1_score = []  # 收集用来matplotlib
-        self.train_loss_list = []  # 收集用来matplotlib
-        self.train_loss_list_y = []  # 收集用来matplotlib
-        self.val_loss_list = []  # 收集用来matplotlib
+        self.train_acc_list = []  # x轴，对应每个epoch
+        self.val_acc_list = []  # x轴，对应每个epoch
+        self.f1_score = []  # x轴，对应每个epoch
+        self.train_loss_list = []  # 对应每个epoch
+        self.train_loss_list_y = []  # 每次batch训练的train acc
+        self.val_loss_list = []  # 对应每个epoch
         self.learn_rate_list_y = []  # 收集用来matplotlib
         self.step_train_x = []  # 收集用来matplotlib
         self.step_val_x = []
-        self.epoch_train_x = []
-        self.train_length_list = []  # 收集用来matplotlib ，训练集每个epoch里的量（length）
+        self.epoch_train_x = [] #acc,loss 的y轴坐标
+        self.train_length_list = [] #acc,loss 的y轴坐标
 
     def set_path(self, path):
         self.path = path
@@ -378,15 +378,14 @@ class drawMatplotlib():
         plt.ylabel('Accuracy')
         plt.plot(self.epoch_train_x, self.train_acc_list, label='train_acc')
         plt.plot(self.epoch_train_x, self.val_acc_list, label='val_acc')
-        plt.plot(self.epoch_train_x, self.f1_score, label='f1_score')
+        # plt.plot(self.epoch_train_x, self.f1_score, label='f1_score')
         plt.legend(['train_acc', 'val_acc', 'f1_score'], loc='upper left')
 
         plt.subplot(2, 2, 2)
         plt.xlabel('Epochs')
         plt.ylabel('Loss')
-        plt.plot(self.step_train_x, self.train_loss_list, label='train_loss')
-        # 不计算val loss
-        # plt.plot(self.step_val_x, self.val_loss_list, label='val_loss')
+        plt.plot(self.epoch_train_x, self.train_loss_list, label='train_loss')
+        plt.plot(self.epoch_train_x, self.val_loss_list, label='val_loss')
         # plt.plot(self.step_train_x, self.train_loss_list_y, label='per_train_loss')
         plt.legend(['train_loss', 'val_loss', 'per_train_loss'], loc='upper left')
 
@@ -418,7 +417,7 @@ class bestScore():
 
     def judge_and_save(self, val_acc, val_loss, epoch, f1_score=None):
 
-        if val_acc > 0.99:
+        if val_acc > 0.30:
             if f1_score is not None:
                 if f1_score >= self.best_f1_score:
                     self.best_score_by_acc = val_acc
