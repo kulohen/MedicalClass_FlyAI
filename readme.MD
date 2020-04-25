@@ -1,6 +1,6 @@
 2020-4-25  
 stdout输出到txt，ok  
-
+plt，ok  
 
 2020-4-24  
 net.py 文件不好处理  
