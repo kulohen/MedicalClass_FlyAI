@@ -101,7 +101,7 @@ class Main(FlyAI):
         hp.num_classes = len(get_nubclass_from_csv())
         d_batchSize = dynamicBatchSize(hp.num_classes)
         dataset_wangyi = DatasetByWangyi(get_nubclass_from_csv())
-        hp.val_batch_size = [16] * hp.num_classes
+        # hp.val_batch_size = [16] * hp.num_classes
         dataset_wangyi.set_Batch_Size(train_size=d_batchSize.getSizebyAcc(0), val_size=hp.val_batch_size)
         draw_plt = drawMatplotlib()
         draw_plt.set_path(path=os.path.join(sys.path[0], 'data', 'output', time_now_plt))
@@ -205,9 +205,9 @@ class Main(FlyAI):
             '''
             # 调用系统打印日志函数，这样在线上可看到训练和校验准确率和损失的实时变化曲线
             train_log(train_loss=round(train_loss, 4),
-                      train_acc=round((train_acc - 0.99 if train_acc > 0.99 else 0), 4),
+                      train_acc=round(train_acc , 4),
                       val_loss=round(val_loss, 4),
-                      val_acc=round((val_acc - 0.99 if val_acc > 0.99 else 0), 4)
+                      val_acc=round(val_acc, 4)
                       )
             sys.stdout.flush()
             # 输出plot
@@ -221,11 +221,13 @@ class Main(FlyAI):
             print('未达到save best acc的条件，已保存最后一次运行的model')
             k_model.save(os.path.join(MODEL_PATH, 'model.h5'))
 
-
-            cost_time = time.time() - time_1
-            need_time_to_end = datetime.timedelta(
-                seconds=(args.EPOCHS - epoch - 1) * int(cost_time))
-            print('耗时：%d秒,预估还需' % (cost_time), need_time_to_end)
+        '''
+        6、耗时统计
+        '''
+        cost_time = time.time() - time_1
+        need_time_to_end = datetime.timedelta(
+            seconds=(args.EPOCHS - epoch - 1) * int(cost_time))
+        print('耗时：%d秒,预估还需' % (cost_time), need_time_to_end)
 
 
 if __name__ == '__main__':

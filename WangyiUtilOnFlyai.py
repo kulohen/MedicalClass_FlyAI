@@ -7,22 +7,17 @@ Contect : 291255700
 Time    : 2019/7/28 上午9:42
 Desc:
 """
-import os
 from time import clock
+
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
-import torch
 from PIL import Image
 from flyai.source.base import DATA_PATH
-from torch import optim as optmzs
-from torchvision import transforms
+
 
 from data_helper import *
-import net
-from hyperparameter import random_per_epoch, reduce_lr_per_epochs, scale_num, img_size, num_classes, train_vs_val
+from hyperparameter import random_per_epoch, reduce_lr_per_epochs, num_classes, train_vs_val
 from path import DATA_PATH
-
 
 DATA_ID = 'MedicalClass'
 
@@ -39,6 +34,9 @@ def get_1_x_data(image_path):
 def get_1_y_data(label):
 
     return label
+
+'''
+
 
 
 lr_level = [
@@ -148,7 +146,7 @@ class OptimizerByWangyi():
             self.lr_level = 2
 
         return tmp_opt
-
+'''
 
 class dynamicBatchSize():
     def __init__(self, num_class):
