@@ -121,8 +121,7 @@ class Main(FlyAI):
         k_model.summary()
         k_model.compile(optimizer=RMSprop(lr=0.0005), loss='categorical_crossentropy', metrics=['acc'])
 
-        predict_csv = {}
-        # predict_csv['truth'] = y_val
+
         for epoch in range(args.EPOCHS):
             time_1 = time.time()
             draw_plt.epoch_train_x.append(epoch + 1)
@@ -144,17 +143,17 @@ class Main(FlyAI):
             val_text, val_label = read_data(val_batch, self.text2id, self.label2id)
             x_val, y_val = get_batches(val_text, val_label, text_padding=self.text2id['_pad_'])
             history = k_model.fit(np.array(x_train), np.array(y_train),
-                                  # validation_data=(np.array(x_val), np.array(y_val)),
+                                  validation_data=(np.array(x_val), np.array(y_val)),
                                   batch_size=args.BATCH, verbose=2)
             train_acc = history.history['acc'][0]
             train_loss = history.history['loss'][0]
-            # val_acc = history.history['val_acc'][0]
-            # val_loss = history.history['val_loss'][0]
+            val_acc = history.history['val_acc'][0]
+            val_loss = history.history['val_loss'][0]
             # print('train acc : %.4f, loss : %.4f, take time:%.1f' % (train_acc, train_loss, time.time() - time_train))
             draw_plt.train_acc_list.append(train_acc)
             draw_plt.train_loss_list.append(train_loss)
-            # draw_plt.val_acc_list.append(val_acc)
-            # draw_plt.val_loss_list.append(val_loss)
+            draw_plt.val_acc_list.append(val_acc)
+            draw_plt.val_loss_list.append(val_loss)
             # draw_plt.learn_rate_list_y.append(optimizer.state_dict()['param_groups'][0]['lr'])
 
             # draw_plt.train_loss_list.extend([train_loss] * len(train_data_loader))
@@ -164,35 +163,6 @@ class Main(FlyAI):
             '''
             2.2 validate
             '''
-            val_acc = 0.0
-            val_loss = 0.0
-            prediction_total_validate = []  # 预测4403，shape = (4403,)
-            time_val = time.time()
-
-            val_history = k_model.predict(np.array(x_val))
-            y_predict_numpy = np.argmax(np.array(val_history), axis=1)
-            y_val_numpy = np.argmax(np.array(y_val), axis=1)
-
-            f1_weighted = f1_score(y_val_numpy, y_predict_numpy, average='weighted')
-            # 求出每类wrong acc(to acc1.0)，用来设置后续的train batch
-            tmp_wrong = np.subtract(y_val_numpy, np.array(y_predict_numpy))
-            val_acc = np.sum((tmp_wrong == 0) / tmp_wrong.shape[0])
-            wrong_acc = []
-            for j in range(hp.num_classes):
-                index = y_val_numpy == j  # 索引0类、1类、、、以此类推
-                wrong = np.sum((tmp_wrong[index] != 0) / tmp_wrong.shape[0])
-                wrong_acc.append(round(wrong, 4))
-
-            # predict_csv['epoch_' + str(epoch + 1)] = y_predict_numpy
-            # predict_file = DataFrame(predict_csv)  # 将字典转换成为数据框
-            # predict_file.to_csv(os.path.join(sys.path[0], 'data', 'output', time_now_csv))
-
-            print('val acc : %.4f, loss : %.4f, f1_score : %.4f, take time:%.1f' % (
-            val_acc, val_loss, f1_weighted, time.time() - time_val))
-            draw_plt.val_acc_list.append(val_acc)
-            draw_plt.val_loss_list.append(val_acc)
-            draw_plt.f1_score.append(f1_weighted)
-
             # time_val = time.time()
             # val_acc = 0.0
             # val_loss = 0.0
@@ -214,7 +184,7 @@ class Main(FlyAI):
             '''
 
             # save best acc
-            if best_score.judge_and_save(val_acc, val_loss, epoch, f1_score=f1_weighted):
+            if best_score.judge_and_save(val_acc, val_loss, epoch, f1_score=None):
                 k_model.save(os.path.join(MODEL_PATH, 'model.h5'))
                 print('save best model')
             best_score.print_best_now()
@@ -227,7 +197,7 @@ class Main(FlyAI):
            '''
             # train acc > 99% (loss < 0.04) ，启动two-phrase training，冻结特征层然后只训练全连接层
 
-            dataset_wangyi.set_Batch_Size(train_size=d_batchSize.getSizebyAcc(val_acc, wrong_acc=wrong_acc),
+            dataset_wangyi.set_Batch_Size(train_size=d_batchSize.getSizebyAcc(val_acc, wrong_acc=None),
                                           val_size=hp.val_batch_size)
 
             '''

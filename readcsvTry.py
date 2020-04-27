@@ -8,3 +8,10 @@ file_unique = readcsv['label'].unique()
 list_unique = file_unique.tolist()
 print(file_unique,len(file_unique))
 print(list_unique)
+
+a = np.array(([1,2,3],[4,5,6]))
+b= np.argmax(a,axis=1)
+print(a)
+print(b)
+
+print(np.argmax(a[0]))
