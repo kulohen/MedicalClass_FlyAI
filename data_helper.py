@@ -37,6 +37,8 @@ def load_labeldict(dictFile):
 def read_data(data, textdict, labeldict):
     text_data, label_data = list(), list()
     for ind, row in data.iterrows():
+        # jieba.lcut("中国是一个伟大的国家")
+        # 　['中国', '是', '一个', '伟大', '的', '国家']
         text_line = jieba.lcut(row['title'] + row['text'])
         tmp_text = list()
         for text in text_line:

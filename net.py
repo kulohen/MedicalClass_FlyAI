@@ -39,7 +39,12 @@ class Net():
             self.model_cnn = keras.Model(text_input, pred)
 
         if self.net_choice == 'keras-bert':
-            pass
+            path = remote_helper.get_remote_date('https://www.flyai.com/m/chinese_L-12_H-768_A-12.zip')
+            config_path = 'data/input/model/chinese_L-12_H-768_A-12/bert_config.json'
+            checkpoint_path = 'data/input/model/chinese_L-12_H-768_A-12/bert_model.ckpt'
+            dict_path = 'data/input/model/chinese_L-12_H-768_A-12/vocab.txt'
+
+
 
     def get_Model(self):
         return self.model_cnn

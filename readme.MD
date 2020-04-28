@@ -1,3 +1,6 @@
+2020-4-28  
+https://www.pythonheidong.com/blog/article/147001/  
+
 2020-4-27  
 21分，val 量不足，还是按0.85来  
 wrong-acc 指导train batch的量  
