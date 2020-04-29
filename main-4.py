@@ -8,7 +8,7 @@ import platform
 
 import keras
 from keras.layers import *
-from keras.optimizers import RMSprop,Adam
+from keras.optimizers import RMSprop
 from sklearn.model_selection import train_test_split
 from flyai.framework import FlyAI
 from flyai.data_helper import DataHelper
@@ -39,7 +39,7 @@ from data_helper import load_dict, load_labeldict, get_batches, read_data
 # 项目的超参，不使用可以删除
 parser = argparse.ArgumentParser()
 parser.add_argument("-e", "--EPOCHS", default=10, type=int, help="train epochs")
-parser.add_argument("-b", "--BATCH", default=32, type=int, help="batch size")
+parser.add_argument("-b", "--BATCH", default=64, type=int, help="batch size")
 args = parser.parse_args()
 
 class Logger(object):
@@ -119,7 +119,7 @@ class Main(FlyAI):
         model_net = Net(num_classes =  get_nubclass_from_csv(),label2id=self.label2id , text2id=self.text2id)
         k_model = model_net.get_Model()
         k_model.summary()
-        k_model.compile(optimizer=Adam(lr=3e-4), loss='categorical_crossentropy', metrics=['acc'])
+        k_model.compile(optimizer=RMSprop(lr=0.0005), loss='categorical_crossentropy', metrics=['acc'])
 
         predict_csv = {}
         # predict_csv['truth'] = y_val
@@ -138,10 +138,12 @@ class Main(FlyAI):
             2.1 train
             '''
             time_train = time.time()
-            train_text_x1, train_text_x2,train_label = read_data_v2(train_batch, self.text2id, self.label2id)
-            val_text_x1, val_text_x2, val_label = read_data_v2(val_batch, self.text2id, self.label2id)
+            train_text, train_label = read_data(train_batch, self.text2id, self.label2id)
+            x_train,y_train = get_batches(train_text, train_label, text_padding=self.text2id['_pad_'])
 
-            history = k_model.fit([train_text_x1, train_text_x2], np.array(train_label),
+            val_text, val_label = read_data(val_batch, self.text2id, self.label2id)
+            x_val, y_val = get_batches(val_text, val_label, text_padding=self.text2id['_pad_'])
+            history = k_model.fit(np.array(x_train), np.array(y_train),
                                   # validation_data=(np.array(x_val), np.array(y_val)),
                                   batch_size=args.BATCH, verbose=2)
             train_acc = history.history['acc'][0]
@@ -167,9 +169,9 @@ class Main(FlyAI):
             prediction_total_validate = []  # 预测4403，shape = (4403,)
             time_val = time.time()
 
-            val_history = k_model.predict([val_text_x1, val_text_x2])
+            val_history = k_model.predict(np.array(x_val))
             y_predict_numpy = np.argmax(np.array(val_history), axis=1)
-            y_val_numpy = np.argmax(np.array(val_label), axis=1)
+            y_val_numpy = np.argmax(np.array(y_val), axis=1)
 
             f1_weighted = f1_score(y_val_numpy, y_predict_numpy, average='weighted')
             # 求出每类wrong acc(to acc1.0)，用来设置后续的train batch

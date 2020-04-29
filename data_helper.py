@@ -5,7 +5,7 @@ import os
 import json
 import jieba
 import numpy as np
-
+from net import tokenizer
 
 def load_dict(dictFile):
     if not os.path.exists(dictFile):
@@ -33,7 +33,9 @@ def load_labeldict(dictFile):
         id2label[value] = key
     return label2id, id2label
 
-
+'''
+jieba 的词向量
+'''
 def read_data(data, textdict, labeldict):
     text_data, label_data = list(), list()
     for ind, row in data.iterrows():
@@ -51,6 +53,43 @@ def read_data(data, textdict, labeldict):
         label[labeldict[row['label']]] = 1
         label_data.append(label)
     return text_data, label_data
+
+'''
+keras-bert 版本
+'''
+def read_data_v2(data, textdict, labeldict):
+    text_data, label_data = list(), list()
+    X1, X2 = [], []
+    for ind, row in data.iterrows():
+
+        # text_line = jieba.lcut(row['title'] + row['text'])
+        text_line = row['title'] + row['text']
+        # X1,X2 = [],[]
+        # for text in text_line:
+        #     x1, x2 = tokenizer.encode(first=text, max_len=68)  # bert的token办法
+        tokens = tokenizer.tokenize(text_line)
+
+        x1,x2 = tokenizer.encode(first=text_line, max_len=68)
+        # X1 = seq_padding(X1)
+        # X2 = seq_padding(X2)
+        X1.append(x1)
+        X2.append(x2)
+
+        label = np.zeros(len(labeldict), dtype=int)
+        label[labeldict[row['label']]] = 1
+        label_data.append(label)
+
+    return np.array(X1), np.array(X2), label_data
+
+'''
+keras-bert的padding办法
+'''
+def seq_padding(X, padding=0):
+    L = [len(x) for x in X]
+    ML = max(L)
+    return np.array([
+        np.concatenate([x, [padding] * (ML - len(x))]) if len(x) < ML else x for x in X
+    ])
 
 
 def pred_process(title, text, textdict, max_len=68):

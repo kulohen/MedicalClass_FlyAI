@@ -29,7 +29,7 @@ model.summary(line_length=120)
 token_dict = load_vocabulary(dict_path)
 
 tokenizer = Tokenizer(token_dict)
-text = '语言模型'
+text = '语言模型是不是'
 tokens = tokenizer.tokenize(text)
 print('Tokens:', tokens)
 indices, segments = tokenizer.encode(first=text, max_len=10)

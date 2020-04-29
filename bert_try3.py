@@ -115,7 +115,7 @@ def build_bert(nclass):
     model = Model([x1_in, x2_in], p)
     model.compile(loss='categorical_crossentropy',
                   optimizer=Adam(1e-5),  # 用足够小的学习率
-                  metrics=['accuracy', acc_top2])
+                  metrics=['accuracy'])
     print(model.summary())
     return model
 

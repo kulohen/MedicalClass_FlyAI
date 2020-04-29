@@ -1,18 +1,52 @@
 ## build CNN
 
 from flyai.utils import remote_helper
-
+from keras import Input, Model, losses
 import keras
 from keras.layers import *
 from keras_bert import load_trained_model_from_checkpoint, Tokenizer
 import codecs
+import numpy as np
+
+path = remote_helper.get_remote_date('https://www.flyai.com/m/chinese_L-12_H-768_A-12.zip')
+config_path = 'data/input/model/chinese_L-12_H-768_A-12/bert_config.json'
+checkpoint_path = 'data/input/model/chinese_L-12_H-768_A-12/bert_model.ckpt'
+dict_path = 'data/input/model/chinese_L-12_H-768_A-12/vocab.txt'
+
+token_dict = {}
+with codecs.open(dict_path, 'r', 'utf8') as reader:
+    for line in reader:
+        token = line.strip()
+        token_dict[token] = len(token_dict)
+
+
+class OurTokenizer(Tokenizer):
+    def _tokenize(self, text):
+        R = []
+        for c in text:
+            if c in self._token_dict:
+                R.append(c)
+            elif self._is_space(c):
+                R.append('[unused1]') # space类用未经训练的[unused1]表示
+            else:
+                R.append('[UNK]') # 剩余的字符是[UNK]
+        return R
+
+tokenizer = OurTokenizer(token_dict)
+
+def seq_padding(X, padding=0):
+    L = [len(x) for x in X]
+    ML = max(L)
+    return np.array([
+        np.concatenate([x, [padding] * (ML - len(x))]) if len(x) < ML else x for x in X
+    ])
 
 class Net():
 
     def __init__(self, num_classes ,label2id , text2id):
         """Declare all needed layers."""
         self.num_classes = num_classes
-        self.net_choice = '构建cnn'
+        self.net_choice = 'keras-bert'
 
         if self.net_choice == '构建cnn':
             rnn_unit_1 = 128  # RNN层包含cell个数
@@ -39,12 +73,21 @@ class Net():
             self.model_cnn = keras.Model(text_input, pred)
 
         if self.net_choice == 'keras-bert':
-            path = remote_helper.get_remote_date('https://www.flyai.com/m/chinese_L-12_H-768_A-12.zip')
-            config_path = 'data/input/model/chinese_L-12_H-768_A-12/bert_config.json'
-            checkpoint_path = 'data/input/model/chinese_L-12_H-768_A-12/bert_model.ckpt'
-            dict_path = 'data/input/model/chinese_L-12_H-768_A-12/vocab.txt'
 
+            bert_model = load_trained_model_from_checkpoint(config_path, checkpoint_path, seq_len=None)  # 加载预训练模型
 
+            class_num = len(label2id)
+            for l in bert_model.layers:
+                l.trainable = True
+
+            x1_in = Input(shape=(None,))
+            x2_in = Input(shape=(None,))
+
+            x = bert_model([x1_in, x2_in])
+            x = Lambda(lambda x: x[:, 0])(x)  # 取出[CLS]对应的向量用来做分类
+            p = Dense(class_num, activation='softmax')(x)
+
+            self.model_cnn = Model([x1_in, x2_in], p)
 
     def get_Model(self):
         return self.model_cnn
