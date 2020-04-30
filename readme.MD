@@ -1,3 +1,7 @@
+2020-4-30  
+predict.py修改  
+keras-bert调试  
+
 2020-4-28  
 https://www.pythonheidong.com/blog/article/147001/  
 

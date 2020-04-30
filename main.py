@@ -119,7 +119,7 @@ class Main(FlyAI):
         model_net = Net(num_classes =  get_nubclass_from_csv(),label2id=self.label2id , text2id=self.text2id)
         k_model = model_net.get_Model()
         k_model.summary()
-        k_model.compile(optimizer=Adam(lr=3e-4), loss='categorical_crossentropy', metrics=['acc'])
+        k_model.compile(optimizer=Adam(lr=1e-5), loss='categorical_crossentropy', metrics=['accuracy'])
 
         predict_csv = {}
         # predict_csv['truth'] = y_val

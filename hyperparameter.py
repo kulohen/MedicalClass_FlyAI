@@ -53,7 +53,7 @@ val_per_class = False
 train_batch_List = [ 150 ] * num_classes
 # 验证集的batch量，模拟预测集
 
-val_batch_size = [
+[
 7 	,	#	0
 160 	,	#	1
 173 	,	#	2
@@ -296,7 +296,7 @@ val_batch_size = [
 0 	,	#	239
 ]
 
-[
+val_batch_size = [
 136	,	#	0
 2934	,	#	1
 3173	,	#	2
