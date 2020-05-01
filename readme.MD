@@ -1,3 +1,6 @@
+2020-5-1  
+self.now_batch[i] = int(normal_batch[i] * value * 10 + 1)  
+
 2020-4-30  
 predict.py修改  
 keras-bert调试  
