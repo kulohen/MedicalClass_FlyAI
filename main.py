@@ -119,7 +119,7 @@ class Main(FlyAI):
         model_net = Net(num_classes =  get_nubclass_from_csv(),label2id=self.label2id , text2id=self.text2id)
         k_model = model_net.get_Model()
         k_model.summary()
-        k_model.compile(optimizer=Adam(lr=1e-5), loss='categorical_crossentropy', metrics=['accuracy'])
+        k_model.compile(optimizer=Adam(lr=1e-4), loss='categorical_crossentropy', metrics=['accuracy'])
 
         predict_csv = {}
         # predict_csv['truth'] = y_val
@@ -242,6 +242,13 @@ class Main(FlyAI):
             if platform.system() == 'Windows':
                 draw_plt.showPlt(best_score_class=best_score)
             # draw_plt.showPlt(best_score_by_acc=best_score_by_acc, best_score_by_loss=best_score_by_loss, best_epoch=best_epoch+1)
+            '''
+            6、耗时统计
+            '''
+            cost_time = time.time() - time_1
+            need_time_to_end = datetime.timedelta(
+                seconds=(args.EPOCHS - epoch - 1) * int(cost_time))
+            print('耗时：%d秒,预估还需' % (cost_time), need_time_to_end)
 
         if os.path.exists(MODEL_PATH):
             best_score.print_best_final()
@@ -249,13 +256,7 @@ class Main(FlyAI):
             print('未达到save best acc的条件，已保存最后一次运行的model')
             k_model.save(os.path.join(MODEL_PATH, 'model.h5'))
 
-        '''
-        6、耗时统计
-        '''
-        cost_time = time.time() - time_1
-        need_time_to_end = datetime.timedelta(
-            seconds=(args.EPOCHS - epoch - 1) * int(cost_time))
-        print('耗时：%d秒,预估还需' % (cost_time), need_time_to_end)
+
 
 
 if __name__ == '__main__':
