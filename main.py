@@ -102,7 +102,7 @@ class Main(FlyAI):
         d_batchSize = dynamicBatchSize(hp.num_classes)
         dataset_wangyi = DatasetByWangyi(get_nubclass_from_csv())
         # hp.val_batch_size = [16] * hp.num_classes
-        dataset_wangyi.set_Batch_Size(train_size=d_batchSize.getSizebyAcc(0), val_size=hp.val_batch_size_5000)
+        dataset_wangyi.set_Batch_Size(train_size=d_batchSize.getSizebyAcc(0), val_size=hp.val_batch_size)
         draw_plt = drawMatplotlib()
         draw_plt.set_path(path=os.path.join(sys.path[0], 'data', 'output', time_now_plt))
         best_score = bestScore()
@@ -226,7 +226,7 @@ class Main(FlyAI):
             # train acc > 99% (loss < 0.04) ，启动two-phrase training，冻结特征层然后只训练全连接层
 
             dataset_wangyi.set_Batch_Size(train_size=d_batchSize.getSizebyAcc(val_acc, wrong_acc=wrong_acc),
-                                          val_size=hp.val_batch_size_5000)
+                                          val_size=hp.val_batch_size)
 
             '''
             5、控制台输出，和matplotlib输出
