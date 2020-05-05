@@ -398,23 +398,24 @@ class dynamicBatchSize():
 
         ]
         assert 0 <= acc <= 1
-        if acc < 0.75:
-            # self.now_batch = [32] * self.n
-            self.now_batch = normal_batch
-        elif acc < 0.8:
-            self.now_batch = [3] * self.n
-        elif acc < 0.85:
-            # self.now_batch = super_batch
-            self.now_batch = [2] * self.n
+        self.now_batch = normal_batch
+        # if acc < 0.75:
+        #     # self.now_batch = [32] * self.n
+        #     self.now_batch = normal_batch
+        # elif acc < 0.8:
+        #     self.now_batch = [3] * self.n
+        # elif acc < 0.85:
+        #     # self.now_batch = super_batch
+        #     self.now_batch = [2] * self.n
+        #
+        # elif acc <= 1:
+        #      self.now_batch= [1] * self.n
 
-        elif acc <= 1:
-             self.now_batch= [1] * self.n
-
-        if wrong_acc is not None and acc >= 0.65:
+        if wrong_acc is not None and acc >= 0.75:
             wrong_acc_dict = {}
             for i, value in enumerate(wrong_acc):
-                # self.now_batch[i] = int(self.now_batch[i] * (value * 1000) + 1)
-                self.now_batch[i] = int(normal_batch[i] * value * 10 + 1)
+                #  (value * 221) / normal_batch[1] 各类本身的错误率per wrong count/ per class
+                self.now_batch[i] = int(self.now_batch[i] * (value * 240 / normal_batch[i]) + 1)
                 wrong_acc_dict[i] = value
 
             print('val acc:%.4f,wrong acc：' % acc, wrong_acc_dict)

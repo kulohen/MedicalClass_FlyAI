@@ -69,7 +69,7 @@ def read_data_v2(data, textdict, labeldict):
         #     x1, x2 = tokenizer.encode(first=text, max_len=68)  # bert的token办法
         tokens = tokenizer.tokenize(text_line)
 
-        x1,x2 = tokenizer.encode(first=text_line, max_len=120)
+        x1,x2 = tokenizer.encode(first=text_line, max_len=30)
         # X1 = seq_padding(X1)
         # X2 = seq_padding(X2)
         X1.append(x1)
